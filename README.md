@@ -1,6 +1,6 @@
 # compas_invocations2
 
-[![pypi](https://img.shields.io/pypi/v/compas_invocations2.svg)](https://pypi.org/project/compas-invocations/)
+[![pypi](https://img.shields.io/pypi/v/compas_invocations2.svg)](https://pypi.org/project/compas-invocations2/)
 
 A collection of reusable pyinvoke tasks
 
