@@ -5,8 +5,8 @@ import tempfile
 
 import invoke
 
-from compas_invocations22.console import chdir
-from compas_invocations22.console import confirm
+from compas_invocations2.console import chdir
+from compas_invocations2.console import confirm
 
 
 @invoke.task(

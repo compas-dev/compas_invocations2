@@ -3,7 +3,7 @@ import math
 import numpy
 import pytest
 
-import compas_invocations22
+import compas_invocations2
 
 
 def pytest_ignore_collect(path):
@@ -19,7 +19,7 @@ def pytest_ignore_collect(path):
 
 @pytest.fixture(autouse=True)
 def add_compas_invocations2(doctest_namespace):
-    doctest_namespace["compas_invocations2"] = compas_invocations22
+    doctest_namespace["compas_invocations2"] = compas_invocations2
 
 
 @pytest.fixture(autouse=True)

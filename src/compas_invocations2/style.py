@@ -1,6 +1,6 @@
 import invoke
 
-from compas_invocations22.console import chdir
+from compas_invocations2.console import chdir
 
 
 @invoke.task()
