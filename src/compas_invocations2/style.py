@@ -16,7 +16,6 @@ def lint(ctx):
     print("\nAll linting is done!")
 
 
-
 @invoke.task()
 def format(ctx):
     """Reformat the code base using black."""

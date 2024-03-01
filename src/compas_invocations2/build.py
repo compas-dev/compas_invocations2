@@ -84,7 +84,6 @@ def release(ctx, release_type):
         raise invoke.Exit("You need to manually revert the tag/commits created.")
 
 
-
 @invoke.task
 def prepare_changelog(ctx):
     """Prepare changelog for next release."""
