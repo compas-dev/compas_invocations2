@@ -20,9 +20,6 @@ def clean(ctx, docs=True, bytecode=True, builds=True, ghuser=True):
     """Cleans the local copy from compiled artifacts."""
 
     with chdir(ctx.base_folder):
-        if builds:
-            ctx.run("python setup.py clean")
-
         if bytecode:
             for root, dirs, files in os.walk(ctx.base_folder):
                 for f in files:
@@ -63,13 +60,13 @@ def release(ctx, release_type):
     ctx.run("invoke format")
 
     # Run checks
-    ctx.run("invoke check test")
+    ctx.run("invoke test")
 
     # Bump version and git tag it
-    ctx.run("bump2version %s --verbose" % release_type)
+    ctx.run("bump-my-version bump %s --verbose" % release_type)
 
     # Build project
-    ctx.run("python setup.py clean --all sdist bdist_wheel")
+    ctx.run("python -m build")
 
     # Prepare the change log for the next release
     prepare_changelog(ctx)
@@ -85,6 +82,7 @@ def release(ctx, release_type):
         ctx.run("git push --tags && git push")
     else:
         raise invoke.Exit("You need to manually revert the tag/commits created.")
+
 
 
 @invoke.task
