@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+* Added task `build-ghuser-components-v2` to build tasks. This one create IPY components for Rhino8.
+
 ### Changed
 
 ### Removed
