@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+* Task `build-cpython-ghuser-components` now uses `ghuser_cpython` configuration key.
+
 ### Removed
 
 

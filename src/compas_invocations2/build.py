@@ -149,9 +149,9 @@ def build_ghuser_components(ctx, gh_io_folder=None, ironpython=None, prefix=None
 )
 def build_cpython_ghuser_components(ctx, gh_io_folder=None, prefix=None):
     """Builds CPython Grasshopper components using GH Componentizer."""
-    prefix = prefix or getattr(ctx.ghuser, "prefix", None)
-    source_dir = os.path.abspath(ctx.ghuser.source_dir)
-    target_dir = os.path.abspath(ctx.ghuser.target_dir)
+    prefix = prefix or getattr(ctx.ghuser_cpython, "prefix", None)
+    source_dir = os.path.abspath(ctx.ghuser_cpython.source_dir)
+    target_dir = os.path.abspath(ctx.ghuser_cpython.target_dir)
     repo_url = "https://github.com/compas-dev/compas-actions.ghpython_components.git"
 
     with chdir(ctx.base_folder):
