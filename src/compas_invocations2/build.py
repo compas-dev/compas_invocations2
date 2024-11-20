@@ -144,6 +144,48 @@ def build_ghuser_components(ctx, gh_io_folder=None, ironpython=None, prefix=None
 @invoke.task(
     help={
         "gh_io_folder": "Folder where GH_IO.dll is located. If not specified, it will try to download from NuGet.",
+        "ironpython": "Command for running the IronPython executable. Defaults to `ipy`.",
+        "prefix": "(Optional) Append this prefix to the names of the built components.",
+    }
+)
+def build_ghuser_components_v2(ctx, gh_io_folder=None, ironpython=None, prefix=None):
+    """Builds IronPython Grasshopper components for Rhino8 using GH Componentizer."""
+    prefix = prefix or getattr(ctx.ghuser, "prefix", None)
+    source_dir = os.path.abspath(ctx.ghuser.source_dir)
+    target_dir = os.path.abspath(ctx.ghuser.target_dir)
+    repo_url = "https://github.com/compas-dev/compas-actions.ghpython_components.git"
+
+    with chdir(ctx.base_folder):
+        shutil.rmtree(os.path.join(ctx.base_folder, target_dir), ignore_errors=True)
+
+    # Build IronPython Grasshopper user objects from source
+    with chdir(ctx.base_folder):
+        with tempfile.TemporaryDirectory("actions.ghcomponentizer") as action_dir:
+            ctx.run("git clone {} {}".format(repo_url, action_dir))
+
+            if not gh_io_folder:
+                gh_io_folder = tempfile.mkdtemp("ghio")
+                import compas_ghpython
+
+                compas_ghpython.fetch_ghio_lib(gh_io_folder)
+
+            if not ironpython:
+                ironpython = ctx.get("ironpython") or "ipy"
+
+            gh_io_folder = os.path.abspath(gh_io_folder)
+            componentizer_script = os.path.join(action_dir, "componentize_ipy_v2.py")
+
+            cmd = "{} {} {} {}".format(ironpython, componentizer_script, source_dir, target_dir)
+            cmd += ' --ghio "{}"'.format(gh_io_folder)
+            if prefix:
+                cmd += ' --prefix "{}"'.format(prefix)
+
+            ctx.run(cmd)
+
+
+@invoke.task(
+    help={
+        "gh_io_folder": "Folder where GH_IO.dll is located. If not specified, it will try to download from NuGet.",
         "prefix": "(Optional) Append this prefix to the names of the built components.",
     }
 )
