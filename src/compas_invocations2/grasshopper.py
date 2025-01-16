@@ -63,12 +63,22 @@ def _get_version_from_toml(toml_file: str) -> str:
     return version
 
 
+def _get_user_object_path(context):
+    if hasattr(context, "ghuser_cpython"):
+        print("checking ghuser_cpython")
+        return os.path.join(context.base_folder, context.ghuser_cpython.target_dir)
+    elif hasattr(context, "ghuser"):
+        print("checking ghuser")
+        return os.path.join(context.base_folder, context.ghuser.target_dir)
+    else:
+        return None
+
+
 @invoke.task(
     help={
-        "gh_components_dir": "Path to the directory containing the .ghuser files.",
-        "target_dir": "Path to the directory where the yak package will be created.",
         "manifest_path": "Path to the manifest file.",
         "logo_path": "Path to the logo file.",
+        "gh_components_dir": "(Optional) Path to the directory containing the .ghuser files.",
         "readme_path": "(Optional) Path to the readme file.",
         "license_path": "(Optional) Path to the license file.",
         "version": "(Optional) The version number to set in the manifest file.",
@@ -76,15 +86,18 @@ def _get_version_from_toml(toml_file: str) -> str:
 )
 def yakerize(
     ctx,
-    gh_components_dir: str,
-    target_dir: str,
     manifest_path: str,
     logo_path: str,
+    gh_components_dir: str = None,
     readme_path: str = None,
     license_path: str = None,
     version: str = None,
 ) -> bool:
     """Create a Grasshopper YAK package from the current project."""
+    gh_components_dir = gh_components_dir or _get_user_object_path(ctx)
+    if not gh_components_dir:
+        invoke.Exit("Please provide the path to the directory containing the .ghuser files.")
+
     readme_path = readme_path or os.path.join(ctx.base_folder, "README.md")
     if not os.path.exists(readme_path):
         invoke.Exit(f"Readme file not found at {readme_path}. Please provide a valid path.")
