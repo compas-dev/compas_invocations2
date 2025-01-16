@@ -138,7 +138,7 @@ def yakerize(
     try:
         _download_yak_executable(target_dir)
     except ValueError:
-        invoke.Exit("Failed to download the yak executable: {e}")
+        invoke.Exit("Failed to download the yak executable")
 
     yak_exe_path: str = os.path.join(target_dir, "yak.exe")
     yak_exe_path = os.path.abspath(yak_exe_path)
@@ -148,7 +148,7 @@ def yakerize(
     os.system("cd")
     try:
         os.system(f"{yak_exe_path} build --platform win")
-    except Exception:
+    except Exception as e:
         invoke.Exit(f"Failed to build the yak package: {e}")
     if not any([f.endswith(".yak") for f in os.listdir(target_dir)]):
         invoke.Exit("No .yak file was created in the build directory.")
