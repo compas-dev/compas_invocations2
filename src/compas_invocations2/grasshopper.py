@@ -1,3 +1,11 @@
+"""
+Adapted from: https://github.com/diffCheckOrg/diffCheck/blob/main/invokes/yakerize.py
+
+Yakerize.py was originally developed as part of the DiffCheck plugin by
+Andrea Settimi, Damien Gilliard, Eleni Skevaki, Marirena Kladeftira (IBOIS, CRCL, EPFL) in 2024.
+It is distributed under the MIT License, provided this attribution is retained.
+"""
+
 import os
 import shutil
 import tempfile
@@ -9,7 +17,6 @@ import toml
 from compas_invocations2.console import chdir
 
 YAK_URL = r"https://files.mcneel.com/yak/tools/latest/yak.exe"
-FILENAME = "yak.exe"
 
 
 def _download_yak_executable(target_dir: str):
@@ -17,7 +24,7 @@ def _download_yak_executable(target_dir: str):
     if response.status_code != 200:
         raise ValueError(f"Failed to download the yak.exe from url:{YAK_URL} with error : {response.status_code}")
 
-    with open(os.path.join(target_dir, FILENAME), "wb") as f:
+    with open(os.path.join(target_dir, "yak.exe"), "wb") as f:
         f.write(response.content)
 
 
@@ -37,7 +44,6 @@ def _set_version_in_manifest(manifest_path: str, version: str):
 
 
 def _clear_directory(path_to_dir):
-    print(f"target dir: {path_to_dir} exists, clearing it.")
     for f in os.listdir(path_to_dir):
         file_path = os.path.join(path_to_dir, f)
         try:
@@ -79,10 +85,6 @@ def yakerize(
     version: str = None,
 ) -> bool:
     """Create a Grasshopper YAK package from the current project."""
-    # copy the manifest, logo, readme, license and ghuser files to the target dir
-    # update the manifest file with the version number
-    # download the yak executable
-    # build the yak package
     readme_path = readme_path or os.path.join(ctx.base_folder, "README.md")
     if not os.path.exists(readme_path):
         invoke.Exit(f"Readme file not found at {readme_path}. Please provide a valid path.")
