@@ -4,6 +4,7 @@ import tempfile
 
 import invoke
 import requests
+import toml
 
 from compas_invocations2.console import chdir
 
@@ -48,15 +49,23 @@ def _clear_directory(path_to_dir):
             invoke.Exit(f"Failed to delete {file_path}: {e}")
 
 
+def _get_version_from_toml(toml_file: str) -> str:
+    pyproject_data = toml.load(toml_file)
+    version = pyproject_data.get("tool", {}).get("bumpversion", {}).get("current_version", None)
+    if not version:
+        invoke.Exit("Failed to get version from pyproject.toml. Please provide a version number.")
+    return version
+
+
 @invoke.task(
     help={
         "gh_components_dir": "Path to the directory containing the .ghuser files.",
         "target_dir": "Path to the directory where the yak package will be created.",
         "manifest_path": "Path to the manifest file.",
         "logo_path": "Path to the logo file.",
-        "readme_path": "Path to the readme file.",
-        "license_path": "Path to the license file.",
-        "version": "The version number to set in the manifest file.",
+        "readme_path": "(Optional) Path to the readme file.",
+        "license_path": "(Optional) Path to the license file.",
+        "version": "(Optional) The version number to set in the manifest file.",
     }
 )
 def yakerize(
@@ -65,16 +74,25 @@ def yakerize(
     target_dir: str,
     manifest_path: str,
     logo_path: str,
-    readme_path: str,
-    license_path: str,
-    version: str,
+    readme_path: str = None,
+    license_path: str = None,
+    version: str = None,
 ) -> bool:
+    """Create a Grasshopper YAK package from the current project."""
     # copy the manifest, logo, readme, license and ghuser files to the target dir
     # update the manifest file with the version number
     # download the yak executable
     # build the yak package
+    readme_path = readme_path or os.path.join(ctx.base_folder, "README.md")
+    if not os.path.exists(readme_path):
+        invoke.Exit(f"Readme file not found at {readme_path}. Please provide a valid path.")
 
-    target_dir = os.path.abspath(target_dir)
+    license_path = license_path or os.path.join(ctx.base_folder, "LICENSE")
+    if not os.path.exists(license_path):
+        invoke.Exit(f"License file not found at {license_path}. Please provide a valid path.")
+
+    version = version or _get_version_from_toml(os.path.join(ctx.base_folder, "pyproject.toml"))
+    target_dir = os.path.join(ctx.base_folder, "dist", "yak_package")
 
     #####################################################################
     # Copy manifest, logo, misc folder (readme, license, etc)
