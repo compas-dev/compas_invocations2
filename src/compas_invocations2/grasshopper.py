@@ -26,6 +26,7 @@ def _download_yak_executable(target_dir: str):
 
     with open(os.path.join(target_dir, "yak.exe"), "wb") as f:
         f.write(response.content)
+    # TODO: return path to the downloaded yak.exe
 
 
 def _set_version_in_manifest(manifest_path: str, version: str):
@@ -161,6 +162,30 @@ def yakerize(
         taget_file = next((f for f in os.listdir(target_dir) if f.endswith(".yak")))
         new_filename = taget_file.replace("any-any", f"{target_rhino}-any")
         os.rename(taget_file, new_filename)
+
+
+@invoke.task(
+    help={"yak_file": "Path to the .yak file to publish.", "test_server": "True to publish to the test server."}
+)
+def publish_yak(ctx, yak_file: str, test_server: bool = False):
+    """Publish a YAK package to the YAK server."""
+
+    if not os.path.exists(yak_file) or not os.path.isfile(yak_file):
+        invoke.Exit(f"Yak file not found at {yak_file}. Please provide a valid path.")
+    if not yak_file.endswith(".yak"):
+        invoke.Exit("Invalid file type. Must be a .yak file.")
+
+    with chdir(ctx.base_folder):
+        with tempfile.TemporaryDirectory("actions.publish_yak") as action_dir:
+            try:
+                _download_yak_executable(action_dir)
+            except ValueError:
+                invoke.Exit("Failed to download the yak executable")
+
+            yak_exe_path: str = os.path.join(action_dir, "yak.exe")
+            if test_server:
+                ctx.run(f"{yak_exe_path} push --source https://test.yak.rhino3d.com {yak_file}")
+            # TODO: non test server publishing
 
 
 @invoke.task(
