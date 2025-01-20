@@ -82,6 +82,7 @@ def _get_user_object_path(context):
         "readme_path": "(Optional) Path to the readme file.",
         "license_path": "(Optional) Path to the license file.",
         "version": "(Optional) The version number to set in the manifest file.",
+        "target_rhino": "(Optional) The target Rhino version for the package. Defaults to 'rh8'.",
     }
 )
 def yakerize(
@@ -92,8 +93,12 @@ def yakerize(
     readme_path: str = None,
     license_path: str = None,
     version: str = None,
+    target_rhino: str = "rh8",
 ) -> bool:
     """Create a Grasshopper YAK package from the current project."""
+    if target_rhino not in ["rh6", "rh7", "rh8"]:
+        invoke.Exit("Invalid target Rhino version. Must be one of: rh6, rh7, rh8")
+
     gh_components_dir = gh_components_dir or _get_user_object_path(ctx)
     if not gh_components_dir:
         invoke.Exit("Please provide the path to the directory containing the .ghuser files.")
@@ -146,11 +151,16 @@ def yakerize(
     with chdir(target_dir):
         try:
             # not using `ctx.run()` here to get properly formatted output (unicode+colors)
-            os.system(f"{yak_exe_path} build --platform win")
+            os.system(f"{yak_exe_path} build --platform any")
         except Exception as e:
             invoke.Exit(f"Failed to build the yak package: {e}")
         if not any([f.endswith(".yak") for f in os.listdir(target_dir)]):
             invoke.Exit("No .yak file was created in the build directory.")
+
+        # filename is what tells YAK the target Rhino version..?
+        taget_file = next((f for f in os.listdir(target_dir) if f.endswith(".yak")))
+        new_filename = taget_file.replace("any-any", f"{target_rhino}-any")
+        os.rename(taget_file, new_filename)
 
 
 @invoke.task(
