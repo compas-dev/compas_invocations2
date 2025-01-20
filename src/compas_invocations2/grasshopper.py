@@ -145,6 +145,7 @@ def yakerize(
 
     with chdir(target_dir):
         try:
+            # not using `ctx.run()` here to get properly formatted output (unicode+colors)
             os.system(f"{yak_exe_path} build --platform win")
         except Exception as e:
             invoke.Exit(f"Failed to build the yak package: {e}")
