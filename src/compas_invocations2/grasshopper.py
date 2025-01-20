@@ -143,16 +143,13 @@ def yakerize(
     yak_exe_path: str = os.path.join(target_dir, "yak.exe")
     yak_exe_path = os.path.abspath(yak_exe_path)
 
-    path_current: str = os.getcwd()
-    os.chdir(target_dir)
-    os.system("cd")
-    try:
-        os.system(f"{yak_exe_path} build --platform win")
-    except Exception as e:
-        invoke.Exit(f"Failed to build the yak package: {e}")
-    if not any([f.endswith(".yak") for f in os.listdir(target_dir)]):
-        invoke.Exit("No .yak file was created in the build directory.")
-    os.chdir(path_current)
+    with chdir(target_dir):
+        try:
+            os.system(f"{yak_exe_path} build --platform win")
+        except Exception as e:
+            invoke.Exit(f"Failed to build the yak package: {e}")
+        if not any([f.endswith(".yak") for f in os.listdir(target_dir)]):
+            invoke.Exit("No .yak file was created in the build directory.")
 
 
 @invoke.task(
