@@ -24,9 +24,10 @@ def _download_yak_executable(target_dir: str):
     if response.status_code != 200:
         raise ValueError(f"Failed to download the yak.exe from url:{YAK_URL} with error : {response.status_code}")
 
-    with open(os.path.join(target_dir, "yak.exe"), "wb") as f:
+    target_path = os.path.join(target_dir, "yak.exe")
+    with open(target_path, "wb") as f:
         f.write(response.content)
-    # TODO: return path to the downloaded yak.exe
+    return target_path
 
 
 def _set_version_in_manifest(manifest_path: str, version: str):
@@ -141,13 +142,14 @@ def yakerize(
     # Yak exe
     #####################################################################
 
+    # yak executable shouldn't be in the target directory, otherwise it will be included in the package
+    target_parent = os.sep.join(target_dir.split(os.sep)[:-1])
     try:
-        _download_yak_executable(target_dir)
+        yak_exe_path = _download_yak_executable(target_parent)
     except ValueError:
         invoke.Exit("Failed to download the yak executable")
-
-    yak_exe_path: str = os.path.join(target_dir, "yak.exe")
-    yak_exe_path = os.path.abspath(yak_exe_path)
+    else:
+        yak_exe_path = os.path.abspath(yak_exe_path)
 
     with chdir(target_dir):
         try:
