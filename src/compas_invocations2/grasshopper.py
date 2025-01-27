@@ -185,4 +185,5 @@ def publish_yak(ctx, yak_file: str, test_server: bool = False):
             yak_exe_path: str = os.path.join(action_dir, "yak.exe")
             if test_server:
                 ctx.run(f"{yak_exe_path} push --source https://test.yak.rhino3d.com {yak_file}")
-            # TODO: non test server publishing
+            else:
+                ctx.run(f"{yak_exe_path} push {yak_file}")
