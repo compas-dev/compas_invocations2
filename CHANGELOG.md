@@ -9,9 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+* Added task `yakerize` to create YAK package for Grasshopper.
+
 ### Changed
 
 * Task `build-cpython-ghuser-components` now uses `ghuser_cpython` configuration key.
+* Moved task `build-cpython-ghuser-components` from `build` to `grasshopper`.
+* Moved task `build-ghuser-components` from `build` to `grasshopper`.
 
 ### Removed
 
