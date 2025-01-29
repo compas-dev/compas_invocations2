@@ -12,7 +12,7 @@ import tempfile
 
 import invoke
 import requests
-import toml
+import tomlkit
 
 from compas_invocations2.console import chdir
 
@@ -58,7 +58,11 @@ def _clear_directory(path_to_dir):
 
 
 def _get_version_from_toml(toml_file: str) -> str:
-    pyproject_data = toml.load(toml_file)
+    with open(toml_file, "r") as f:
+        pyproject_data = tomlkit.load(f)
+    if not pyproject_data:
+        raise invoke.Exit("Failed to load pyproject.toml.")
+
     version = pyproject_data.get("tool", {}).get("bumpversion", {}).get("current_version", None)
     if not version:
         raise invoke.Exit("Failed to get version from pyproject.toml. Please provide a version number.")

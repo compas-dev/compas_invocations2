@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+* Replaced `toml` with `tomlkit` as the former is not available for python past 3.9. 
+
 ### Removed
 
 
