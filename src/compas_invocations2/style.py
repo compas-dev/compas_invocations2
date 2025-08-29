@@ -10,9 +10,6 @@ def lint(ctx):
     print("\nRunning ruff linter...")
     ctx.run("ruff check --fix src tests")
 
-    print("\nRunning black linter...")
-    ctx.run("black --check --diff --color src tests")
-
     print("\nAll linting is done!")
 
 
@@ -22,9 +19,6 @@ def format(ctx):
 
     print("\nRunning ruff formatter...")
     ctx.run("ruff format src tests")
-
-    print("\nRunning black formatter...")
-    ctx.run("black src tests")
 
     print("\nAll formatting is done!")
 
