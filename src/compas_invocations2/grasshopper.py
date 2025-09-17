@@ -9,6 +9,7 @@ It is distributed under the MIT License, provided this attribution is retained.
 import os
 import shutil
 import tempfile
+from pathlib import Path
 
 import invoke
 import requests
@@ -173,9 +174,7 @@ def yakerize(
         os.rename(taget_file, new_filename)
 
 
-@invoke.task(
-    help={"yak_file": "Path to the .yak file to publish.", "test_server": "True to publish to the test server."}
-)
+@invoke.task(help={"yak_file": "Path to the .yak file to publish.", "test_server": "True to publish to the test server."})
 def publish_yak(ctx, yak_file: str, test_server: bool = False):
     """Publish a YAK package to the YAK server."""
 
@@ -196,3 +195,49 @@ def publish_yak(ctx, yak_file: str, test_server: bool = False):
                 ctx.run(f"{yak_exe_path} push --source https://test.yak.rhino3d.com {yak_file}")
             else:
                 ctx.run(f"{yak_exe_path} push {yak_file}")
+
+
+def _get_version_from_toml() -> str:
+    with open("pyproject.toml", "r") as f:
+        pyproject_data = tomlkit.load(f)
+    if not pyproject_data:
+        raise invoke.Exit("Failed to load pyproject.toml.")
+
+    version = pyproject_data.get("tool", {}).get("bumpversion", {}).get("current_version", None)
+    if not version:
+        raise invoke.Exit("Failed to get version from pyproject.toml. Please provide a version number.")
+    return version
+
+
+def _get_package_name() -> str:
+    with open("pyproject.toml", "r") as f:
+        pyproject_data = tomlkit.load(f)
+    if not pyproject_data:
+        raise invoke.Exit("Failed to load pyproject.toml.")
+
+    name = pyproject_data.get("project", {}).get("name", None)
+    if not name:
+        raise invoke.Exit("Failed to get package name from pyproject.toml.")
+    return name
+
+
+@invoke.task(help={"version": "New minimum version to set in the header. If not provided, current version is used."})
+def update_gh_header(ctx, version=None):
+    """Update the minimum version header of all CPython Grasshopper components."""
+    version = version or _get_version_from_toml()
+    package_name = _get_package_name()
+    new_header = f"# r: {package_name}>={version}"
+
+    for file in Path(ctx.ghuser_cpython.source_dir).glob("**/code.py"):
+        try:
+            with open(file, "r", encoding="utf-8") as f:
+                original_content = f.readlines()
+            with open(file, "w", encoding="utf-8") as f:
+                for line in original_content:
+                    if line.startswith(f"# r: {package_name}"):
+                        f.write(new_header + "\n")
+                    else:
+                        f.write(line)
+            print(f"✅ Updated: {file}")
+        except Exception as e:
+            print(f"❌ Failed to update {file}: {e}")
