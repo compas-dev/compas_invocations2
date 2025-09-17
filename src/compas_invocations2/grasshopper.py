@@ -70,6 +70,18 @@ def _get_version_from_toml(toml_file: str) -> str:
     return version
 
 
+def _get_package_name(toml_file: str) -> str:
+    with open(toml_file, "r") as f:
+        pyproject_data = tomlkit.load(f)
+    if not pyproject_data:
+        raise invoke.Exit("Failed to load pyproject.toml.")
+
+    name = pyproject_data.get("project", {}).get("name", None)
+    if not name:
+        raise invoke.Exit("Failed to get package name from pyproject.toml.")
+    return name
+
+
 def _get_user_object_path(context):
     if hasattr(context, "ghuser_cpython"):
         print("checking ghuser_cpython")
@@ -199,35 +211,13 @@ def publish_yak(ctx, yak_file: str, test_server: bool = False):
                 ctx.run(f"{yak_exe_path} push {yak_file}")
 
 
-def _get_version_from_toml() -> str:
-    with open("pyproject.toml", "r") as f:
-        pyproject_data = tomlkit.load(f)
-    if not pyproject_data:
-        raise invoke.Exit("Failed to load pyproject.toml.")
-
-    version = pyproject_data.get("tool", {}).get("bumpversion", {}).get("current_version", None)
-    if not version:
-        raise invoke.Exit("Failed to get version from pyproject.toml. Please provide a version number.")
-    return version
-
-
-def _get_package_name() -> str:
-    with open("pyproject.toml", "r") as f:
-        pyproject_data = tomlkit.load(f)
-    if not pyproject_data:
-        raise invoke.Exit("Failed to load pyproject.toml.")
-
-    name = pyproject_data.get("project", {}).get("name", None)
-    if not name:
-        raise invoke.Exit("Failed to get package name from pyproject.toml.")
-    return name
-
-
 @invoke.task(help={"version": "New minimum version to set in the header. If not provided, current version is used."})
 def update_gh_header(ctx, version=None):
     """Update the minimum version header of all CPython Grasshopper components."""
-    version = version or _get_version_from_toml()
-    package_name = _get_package_name()
+    toml_filepath = os.path.join(ctx.base_folder, "pyproject.toml")
+    version = version or _get_version_from_toml(toml_filepath)
+    package_name = _get_package_name(toml_filepath)
+
     new_header = f"# r: {package_name}>={version}"
 
     for file in Path(ctx.ghuser_cpython.source_dir).glob("**/code.py"):
