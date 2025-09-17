@@ -174,7 +174,9 @@ def yakerize(
         os.rename(taget_file, new_filename)
 
 
-@invoke.task(help={"yak_file": "Path to the .yak file to publish.", "test_server": "True to publish to the test server."})
+@invoke.task(
+    help={"yak_file": "Path to the .yak file to publish.", "test_server": "True to publish to the test server."}
+)
 def publish_yak(ctx, yak_file: str, test_server: bool = False):
     """Publish a YAK package to the YAK server."""
 
