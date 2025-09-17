@@ -9,6 +9,7 @@ It is distributed under the MIT License, provided this attribution is retained.
 import os
 import shutil
 import tempfile
+from pathlib import Path
 
 import invoke
 import requests
@@ -67,6 +68,18 @@ def _get_version_from_toml(toml_file: str) -> str:
     if not version:
         raise invoke.Exit("Failed to get version from pyproject.toml. Please provide a version number.")
     return version
+
+
+def _get_package_name(toml_file: str) -> str:
+    with open(toml_file, "r") as f:
+        pyproject_data = tomlkit.load(f)
+    if not pyproject_data:
+        raise invoke.Exit("Failed to load pyproject.toml.")
+
+    name = pyproject_data.get("project", {}).get("name", None)
+    if not name:
+        raise invoke.Exit("Failed to get package name from pyproject.toml.")
+    return name
 
 
 def _get_user_object_path(context):
@@ -196,3 +209,27 @@ def publish_yak(ctx, yak_file: str, test_server: bool = False):
                 ctx.run(f"{yak_exe_path} push --source https://test.yak.rhino3d.com {yak_file}")
             else:
                 ctx.run(f"{yak_exe_path} push {yak_file}")
+
+
+@invoke.task(help={"version": "New minimum version to set in the header. If not provided, current version is used."})
+def update_gh_header(ctx, version=None):
+    """Update the minimum version header of all CPython Grasshopper components."""
+    toml_filepath = os.path.join(ctx.base_folder, "pyproject.toml")
+    version = version or _get_version_from_toml(toml_filepath)
+    package_name = _get_package_name(toml_filepath)
+
+    new_header = f"# r: {package_name}>={version}"
+
+    for file in Path(ctx.ghuser_cpython.source_dir).glob("**/code.py"):
+        try:
+            with open(file, "r", encoding="utf-8") as f:
+                original_content = f.readlines()
+            with open(file, "w", encoding="utf-8") as f:
+                for line in original_content:
+                    if line.startswith(f"# r: {package_name}"):
+                        f.write(new_header + "\n")
+                    else:
+                        f.write(line)
+            print(f"✅ Updated: {file}")
+        except Exception as e:
+            print(f"❌ Failed to update {file}: {e}")
