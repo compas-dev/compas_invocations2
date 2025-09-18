@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+* Added flag `dev` to `update-gh-header`.
+* Added argument `venv` to `update-gh-header`.
+* Added argument `envs` to `update-gh-header`.
+
 ### Changed
 
 ### Removed
