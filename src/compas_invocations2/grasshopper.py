@@ -211,24 +211,36 @@ def publish_yak(ctx, yak_file: str, test_server: bool = False):
                 ctx.run(f"{yak_exe_path} push {yak_file}")
 
 
-@invoke.task(help={"version": "New minimum version to set in the header. If not provided, current version is used."})
-def update_gh_header(ctx, version=None):
+@invoke.task(
+    help={
+        "version": "New minimum version to set in the header. If not provided, current version is used.",
+        "venv": "Name of the Rhino virtual environment to activate, if any.",
+        "no_dep": "If True, the dependency header is ommitted to allow using the package in development mode.",
+    }
+)
+def update_gh_header(ctx, version=None, venv=None, no_dep=False):
     """Update the minimum version header of all CPython Grasshopper components."""
+    # no_dep == True => ommit the dependency section
     toml_filepath = os.path.join(ctx.base_folder, "pyproject.toml")
     version = version or _get_version_from_toml(toml_filepath)
     package_name = _get_package_name(toml_filepath)
 
-    new_header = f"# r: {package_name}>={version}"
+    new_header = []
+    if not no_dep:
+        new_header.append(f"# r: {package_name}>={version}\n")
+    if venv:
+        new_header.append(f"# venv: {venv}\n")
 
     for file in Path(ctx.ghuser_cpython.source_dir).glob("**/code.py"):
         try:
             with open(file, "r", encoding="utf-8") as f:
                 original_content = f.readlines()
+
             with open(file, "w", encoding="utf-8") as f:
+                for line in new_header:
+                    f.write(line)
                 for line in original_content:
-                    if line.startswith(f"# r: {package_name}"):
-                        f.write(new_header + "\n")
-                    else:
+                    if not (line.startswith("# r:") or line.startswith("# venv:")):
                         f.write(line)
             print(f"✅ Updated: {file}")
         except Exception as e:
