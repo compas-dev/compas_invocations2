@@ -214,8 +214,8 @@ def publish_yak(ctx, yak_file: str, test_server: bool = False):
 @invoke.task(
     help={
         "version": "New minimum version to set in the header. If not provided, current version is used.",
-        "venv": "Name of the Rhino virtual environment to activate, if any.",
-        "no_dep": "If True, the dependency header is ommitted to allow using the package in development mode.",
+        "venv": "(Optional) Name of the Rhino virtual environment to use in the components.",
+        "no_dep": "(Defaults to False) If True, the dependency header is ommitted. This may be useful for development.",
     }
 )
 def update_gh_header(ctx, version=None, venv=None, no_dep=False):
