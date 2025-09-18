@@ -211,25 +211,34 @@ def publish_yak(ctx, yak_file: str, test_server: bool = False):
                 ctx.run(f"{yak_exe_path} push {yak_file}")
 
 
+def _is_header_line(line: str) -> bool:
+    return line.startswith("# r:") or line.startswith("# venv:") or line.startswith("# env:")
+
+
 @invoke.task(
     help={
         "version": "New minimum version to set in the header. If not provided, current version is used.",
         "venv": "(Optional) Name of the Rhino virtual environment to use in the components.",
-        "no_dep": "(Defaults to False) If True, the dependency header is ommitted. This may be useful for development.",
+        "dev": "(Defaults to False) If True, the dependency header is ommitted and path to repo is added instead.",
+        "envs": "(Optional) List of environments, delimited with `;` which will be added to path using `# env:`.",
     }
 )
-def update_gh_header(ctx, version=None, venv=None, no_dep=False):
+def update_gh_header(ctx, version: str = None, venv: str = None, dev: bool = False, envs: str = None):
     """Update the minimum version header of all CPython Grasshopper components."""
-    # no_dep == True => ommit the dependency section
     toml_filepath = os.path.join(ctx.base_folder, "pyproject.toml")
-    version = version or _get_version_from_toml(toml_filepath)
-    package_name = _get_package_name(toml_filepath)
 
     new_header = []
-    if not no_dep:
+    if not dev:
+        version = version or _get_version_from_toml(toml_filepath)
+        package_name = _get_package_name(toml_filepath)
         new_header.append(f"# r: {package_name}>={version}\n")
     if venv:
         new_header.append(f"# venv: {venv}\n")
+    if envs:
+        for env in envs.split(";"):
+            new_header.append(f"# env: {env.strip()}\n")
+    if dev:
+        new_header.append(f"# env: {os.path.join(ctx.base_folder, 'src')}\n")
 
     for file in Path(ctx.ghuser_cpython.source_dir).glob("**/code.py"):
         try:
@@ -240,7 +249,7 @@ def update_gh_header(ctx, version=None, venv=None, no_dep=False):
                 for line in new_header:
                     f.write(line)
                 for line in original_content:
-                    if not (line.startswith("# r:") or line.startswith("# venv:")):
+                    if not _is_header_line(line):
                         f.write(line)
             print(f"✅ Updated: {file}")
         except Exception as e:
