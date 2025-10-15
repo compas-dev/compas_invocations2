@@ -213,7 +213,7 @@ def publish_yak(ctx, yak_file: str, test_server: bool = False):
 
 
 def _is_header_line(line: str) -> bool:
-    return re.match(r"^#\s*(r|venv|env):", line) is not None
+    return re.match(r"^#\s+(r|venv|env):", line) is not None
 
 
 @invoke.task(
