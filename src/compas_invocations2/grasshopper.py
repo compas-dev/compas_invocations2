@@ -79,7 +79,7 @@ def _get_package_name(toml_file: str) -> str:
 
     name = pyproject_data.get("project", {}).get("name", None)
     if not name:
-        raise invoke.Exit("Failed to get package name from pyproject.toml.")
+        raise invoke.Exit("Failed to get package name. Is your pyproject.toml missing a '[project]' section?")
     return name
 
 
