@@ -7,6 +7,7 @@ It is distributed under the MIT License, provided this attribution is retained.
 """
 
 import os
+import re
 import shutil
 import tempfile
 from pathlib import Path
@@ -78,7 +79,7 @@ def _get_package_name(toml_file: str) -> str:
 
     name = pyproject_data.get("project", {}).get("name", None)
     if not name:
-        raise invoke.Exit("Failed to get package name from pyproject.toml.")
+        raise invoke.Exit("Failed to get package name. Is your pyproject.toml missing a '[project]' section?")
     return name
 
 
@@ -211,24 +212,45 @@ def publish_yak(ctx, yak_file: str, test_server: bool = False):
                 ctx.run(f"{yak_exe_path} push {yak_file}")
 
 
-@invoke.task(help={"version": "New minimum version to set in the header. If not provided, current version is used."})
-def update_gh_header(ctx, version=None):
+def _is_header_line(line: str) -> bool:
+    return re.match(r"^#\s+(r|venv|env):", line) is not None
+
+
+@invoke.task(
+    help={
+        "version": "New minimum version to set in the header. If not provided, current version is used.",
+        "venv": "(Optional) Name of the Rhino virtual environment to use in the components.",
+        "dev": "(Defaults to False) If True, the dependency header is ommitted and path to repo is added instead.",
+        "envs": "(Optional) List of environments, delimited with `;` which will be added to path using `# env:`.",
+    }
+)
+def update_gh_header(ctx, version: str = None, venv: str = None, dev: bool = False, envs: str = None):
     """Update the minimum version header of all CPython Grasshopper components."""
     toml_filepath = os.path.join(ctx.base_folder, "pyproject.toml")
-    version = version or _get_version_from_toml(toml_filepath)
-    package_name = _get_package_name(toml_filepath)
 
-    new_header = f"# r: {package_name}>={version}"
+    new_header = []
+    if not dev:
+        version = version or _get_version_from_toml(toml_filepath)
+        package_name = _get_package_name(toml_filepath)
+        new_header.append(f"# r: {package_name}>={version}\n")
+    if venv:
+        new_header.append(f"# venv: {venv}\n")
+    if envs:
+        for env in envs.split(";"):
+            new_header.append(f"# env: {env.strip()}\n")
+    if dev:
+        new_header.append(f"# env: {os.path.join(ctx.base_folder, 'src')}\n")
 
     for file in Path(ctx.ghuser_cpython.source_dir).glob("**/code.py"):
         try:
             with open(file, "r", encoding="utf-8") as f:
                 original_content = f.readlines()
+
             with open(file, "w", encoding="utf-8") as f:
+                for line in new_header:
+                    f.write(line)
                 for line in original_content:
-                    if line.startswith(f"# r: {package_name}"):
-                        f.write(new_header + "\n")
-                    else:
+                    if not _is_header_line(line):
                         f.write(line)
             print(f"✅ Updated: {file}")
         except Exception as e:
