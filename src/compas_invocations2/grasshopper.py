@@ -7,6 +7,7 @@ It is distributed under the MIT License, provided this attribution is retained.
 """
 
 import os
+import re
 import shutil
 import tempfile
 from pathlib import Path
@@ -212,7 +213,7 @@ def publish_yak(ctx, yak_file: str, test_server: bool = False):
 
 
 def _is_header_line(line: str) -> bool:
-    return line.startswith("# r:") or line.startswith("# venv:") or line.startswith("# env:")
+    return re.match(r"^#\s*(r|venv|env):", line) is not None
 
 
 @invoke.task(
