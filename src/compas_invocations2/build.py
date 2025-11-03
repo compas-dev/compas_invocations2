@@ -177,3 +177,13 @@ def build_cpython_ghuser_components(ctx, gh_io_folder=None, prefix=None):
                 cmd += ' --prefix "{}"'.format(prefix)
 
             ctx.run(cmd)
+
+
+@invoke.task
+def pre_build(ctx):
+    """Pre-build steps before building components.
+
+    This is a placeholder for any pre-build steps that might be needed and are to be added but the actual project.
+
+    """
+    pass
