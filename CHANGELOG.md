@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+* `--dev` flag now also adds the package requirements to the header as `#r` entries.
+
 ### Removed
 
 

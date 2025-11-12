@@ -11,6 +11,7 @@ import re
 import shutil
 import tempfile
 from pathlib import Path
+from typing import List
 
 import invoke
 import requests
@@ -81,6 +82,41 @@ def _get_package_name(toml_file: str) -> str:
     if not name:
         raise invoke.Exit("Failed to get package name. Is your pyproject.toml missing a '[project]' section?")
     return name
+
+
+def _sanitize_dependency(dep: str) -> str:
+    # HACK: Remove upper bound constraints (e.g., ", <3" or ",<3") as Rhino currenly doesn't support them
+    # https://discourse.mcneel.com/t/python-dependencies-with-ordered-comparison-syntax/212304
+    sanitized = re.split(r"\s*,\s*[<>=]", dep)[0]
+    sanitized = sanitized.split("#")[0].strip()  # Remove inline comments
+    return sanitized
+
+
+def _get_deps_from_requirements(req_filepath: str) -> str:
+    with open(req_filepath, "r") as req_file:
+        dependencies = []
+        for line in req_file:
+            line = line.strip()
+            if line and not line.startswith("#"):
+                dependencies.append(_sanitize_dependency(line))
+        return dependencies
+
+
+def _get_dependencies(base_folder: str) -> List[str]:
+    toml_filepath = os.path.join(base_folder, "pyproject.toml")
+    with open(toml_filepath, "r") as f:
+        toml = tomlkit.load(f)
+
+    dependencies = toml.get("project", {}).get("dependencies")
+    if dependencies:
+        return [_sanitize_dependency(dep) for dep in dependencies]
+
+    dynamic_deps = toml.get("tool", {}).get("setuptools", {}).get("dynamic", {}).get("dependencies")
+    if dynamic_deps and "file" in dynamic_deps:
+        req_filepath = os.path.join(base_folder, dynamic_deps["file"])
+        return _get_deps_from_requirements(req_filepath)
+
+    return []
 
 
 def _get_user_object_path(context):
@@ -240,6 +276,9 @@ def update_gh_header(ctx, version: str = None, venv: str = None, dev: bool = Fal
             new_header.append(f"# env: {env.strip()}\n")
     if dev:
         new_header.append(f"# env: {os.path.join(ctx.base_folder, 'src')}\n")
+        dependencies = _get_dependencies(ctx.base_folder)
+        if dependencies:
+            new_header.append(f"# r: {', '.join(dependencies)}\n")
 
     for file in Path(ctx.ghuser_cpython.source_dir).glob("**/code.py"):
         try:
