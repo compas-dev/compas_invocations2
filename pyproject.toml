@@ -12,6 +12,7 @@ description = "A collection of reusable pyinvoke tasks."
 keywords = []
 authors = [
     { name = "Li Chen", email = "li.chen@arch.ethz.ch" },
+    { name = "Gonzalo Casas", email = "casas@arch.ethz.ch" },
 ]
 license = { file = "LICENSE" }
 readme = "README.md"
