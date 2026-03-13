@@ -1,8 +1,6 @@
-from __future__ import print_function
-
 import os
 
-from invoke import Collection
+from invoke.collection import Collection
 
 from compas_invocations2 import build
 from compas_invocations2 import docs
