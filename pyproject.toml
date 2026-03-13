@@ -45,7 +45,7 @@ zip-safe = false
 [tool.setuptools.dynamic]
 version = { attr = "compas_invocations2.__version__" }
 dependencies = { file = "requirements.txt" }
-optional-dependencies = { dev = { file = "requirements-dev.txt" } }
+optional-dependencies = { dev = { file = "requirements-dev.txt" }, mkdocs = { file = "requirements-mkdocs.txt" } }
 
 [tool.setuptools.packages.find]
 where = ["src"]

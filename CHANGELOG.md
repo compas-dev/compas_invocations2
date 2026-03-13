@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+* Added support for `Mkdocs` documentation generation, using `mkdocs.docs` task. (`Mkdocs` is an optional dependency at the moment, but may become a required dependency in the future).
+
 ### Changed
 
 ### Removed
