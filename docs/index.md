@@ -1,6 +1,6 @@
 # COMPAS Invocations 2
 
-A collection of reusable pyinvoke tasks for COMPAS packages.
+A collection of reusable [`pyinvoke`](https://pyinvoke.org/) tasks for COMPAS packages.
 
 ## Features
 

@@ -137,3 +137,14 @@ plugins:
             type_parameter_headings: true
             unwrap_annotated: true
 
+
+nav:
+  - Home: index.md
+  - Installation: installation.md
+  - API Reference:
+      - Build Tasks: api/build.md
+      - Console Tasks: api/console.md
+      - Documentation Tasks: api/docs.md
+      - Style Tasks: api/style.md
+      - Test Tasks: api/tests.md
+  - License: license.md
