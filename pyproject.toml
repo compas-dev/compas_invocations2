@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=66.0"]
+requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
 # ============================================================================
@@ -12,6 +12,7 @@ description = "A collection of reusable pyinvoke tasks."
 keywords = []
 authors = [
     { name = "Li Chen", email = "li.chen@arch.ethz.ch" },
+    { name = "Gonzalo Casas", email = "casas@arch.ethz.ch" },
 ]
 license = { file = "LICENSE" }
 readme = "README.md"
@@ -25,6 +26,7 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 
 [project.urls]
@@ -45,7 +47,7 @@ zip-safe = false
 [tool.setuptools.dynamic]
 version = { attr = "compas_invocations2.__version__" }
 dependencies = { file = "requirements.txt" }
-optional-dependencies = { dev = { file = "requirements-dev.txt" } }
+optional-dependencies = { dev = { file = "requirements-dev.txt" }, mkdocs = { file = "requirements-mkdocs.txt" } }
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -105,7 +107,6 @@ select = ["E", "F", "I"]
 [tool.ruff.lint.per-file-ignores]
 "__init__.py" = ["I001"]
 "tests/*" = ["I001"]
-"tasks.py" = ["I001"]
 
 [tool.ruff.lint.isort]
 force-single-line = true

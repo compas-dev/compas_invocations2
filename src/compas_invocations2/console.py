@@ -1,21 +1,3 @@
-"""
-********************************************************************************
-console
-********************************************************************************
-
-Text console UI helpers and patterns, e.g. ‘Y/n’ prompts and the like.
-
-.. currentmodule:: compas_invocations2.console
-
-.. autosummary::
-    :toctree: generated/
-    :nosignatures:
-
-    confirm
-    chdir
-
-"""
-
 import contextlib
 import os
 import sys

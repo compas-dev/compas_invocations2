@@ -1,21 +1,19 @@
-from __future__ import print_function
-
 import os
 
-from invoke import Collection
+from invoke.collection import Collection
 
 from compas_invocations2 import build
 from compas_invocations2 import docs
+from compas_invocations2 import mkdocs
 from compas_invocations2 import style
 from compas_invocations2 import tests
 
 ns = Collection(
     docs.help,
+    mkdocs.docs,
     style.check,
     style.lint,
     style.format,
-    docs.docs,
-    docs.linkcheck,
     tests.test,
     tests.testdocs,
     tests.testcodeblocks,
