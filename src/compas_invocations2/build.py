@@ -50,7 +50,9 @@ def clean(ctx, docs=True, bytecode=True, builds=True, ghuser=True):
             shutil.rmtree(os.path.join(ctx.base_folder, folder), ignore_errors=True)
 
 
-@invoke.task(help={"release_type": "Type of release follows semver rules. Must be one of: major, minor, patch."})
+@invoke.task(
+    help={"release_type": "Type of release follows semver rules. Must be one of: major, minor, patch, pre_l, pre_n."}
+)
 def release(ctx, release_type):
     """Releases the project in one swift command!"""
     if release_type not in ("patch", "minor", "major", "pre_l", "pre_n"):
