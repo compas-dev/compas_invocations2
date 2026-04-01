@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://compas-dev.github.io/compas_invocations2/1.1.0/</loc>
+         <lastmod>2026-04-01</lastmod>
+    </url>
+    <url>
+         <loc>https://compas-dev.github.io/compas_invocations2/1.1.0/installation/</loc>
+         <lastmod>2026-04-01</lastmod>
+    </url>
+    <url>
+         <loc>https://compas-dev.github.io/compas_invocations2/1.1.0/license/</loc>
+         <lastmod>2026-04-01</lastmod>
+    </url>
+    <url>
+         <loc>https://compas-dev.github.io/compas_invocations2/1.1.0/api/build/</loc>
+         <lastmod>2026-04-01</lastmod>
+    </url>
+    <url>
+         <loc>https://compas-dev.github.io/compas_invocations2/1.1.0/api/console/</loc>
+         <lastmod>2026-04-01</lastmod>
+    </url>
+    <url>
+         <loc>https://compas-dev.github.io/compas_invocations2/1.1.0/api/docs/</loc>
+         <lastmod>2026-04-01</lastmod>
+    </url>
+    <url>
+         <loc>https://compas-dev.github.io/compas_invocations2/1.1.0/api/style/</loc>
+         <lastmod>2026-04-01</lastmod>
+    </url>
+    <url>
+         <loc>https://compas-dev.github.io/compas_invocations2/1.1.0/api/tests/</loc>
+         <lastmod>2026-04-01</lastmod>
+    </url>
+</urlset>
