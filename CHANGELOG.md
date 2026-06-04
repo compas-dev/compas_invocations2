@@ -11,6 +11,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+* `build-cpython-ghuser-components` now runs the componentizer as a direct subprocess (using `sys.executable`) instead of through a shell, and on macOS forces the Mono runtime and adds the Homebrew library directories to `DYLD_LIBRARY_PATH`. This makes the task work on macOS (and Linux) without Rhino/Windows — previously the embedded Mono could not find `libgdiplus` to embed component icons, and macOS SIP stripped `DYLD_*` across the shell `ctx.run` used.
+
 ### Removed
 
 
