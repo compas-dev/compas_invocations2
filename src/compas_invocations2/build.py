@@ -1,6 +1,9 @@
 import glob
 import os
+import platform
 import shutil
+import subprocess
+import sys
 import tempfile
 
 import invoke
@@ -173,12 +176,44 @@ def build_cpython_ghuser_components(ctx, gh_io_folder=None, prefix=None):
             gh_io_folder = os.path.abspath(gh_io_folder)
             componentizer_script = os.path.join(action_dir, "componentize_cpy.py")
 
-            cmd = "{} {} {} {}".format("python", componentizer_script, source_dir, target_dir)
-            cmd += ' --ghio "{}"'.format(gh_io_folder)
+            cmd = [sys.executable, componentizer_script, source_dir, target_dir, "--ghio", gh_io_folder]
             if prefix:
-                cmd += ' --prefix "{}"'.format(prefix)
+                cmd += ["--prefix", prefix]
 
-            ctx.run(cmd)
+            # The componentizer loads GH_IO.dll through pythonnet. On macOS that means Mono,
+            # which needs the native libgdiplus to embed component icons. The embedded Mono
+            # does not search the Homebrew prefix the way the `mono` CLI does, so we point it
+            # there via DYLD_LIBRARY_PATH. We also run the interpreter directly instead of
+            # through `ctx.run` (which spawns a shell): macOS SIP strips DYLD_* across the
+            # protected /bin/sh, so otherwise the variable never reaches the subprocess.
+            subprocess.run(cmd, env=_componentizer_env(), check=True)
+
+
+def _componentizer_env():
+    """Return the environment for the componentizer subprocess.
+
+    On macOS this forces the Mono runtime (pythonnet may otherwise default to a
+    .NET Core runtime that cannot load the net48 ``GH_IO.dll`` / ``System.Drawing``)
+    and adds the Homebrew library directories to ``DYLD_LIBRARY_PATH`` so Mono can
+    find ``libgdiplus``. On other platforms the current environment is returned
+    unchanged.
+    """
+    env = dict(os.environ)
+    if platform.system() != "Darwin":
+        return env
+
+    env.setdefault("PYTHONNET_RUNTIME", "mono")
+
+    lib_dirs = ["/opt/homebrew/lib", "/usr/local/lib"]
+    try:
+        brew_prefix = subprocess.check_output(["brew", "--prefix"], text=True).strip()
+        lib_dirs.insert(0, os.path.join(brew_prefix, "lib"))
+    except (OSError, subprocess.CalledProcessError):
+        pass
+    if env.get("DYLD_LIBRARY_PATH"):
+        lib_dirs.append(env["DYLD_LIBRARY_PATH"])
+    env["DYLD_LIBRARY_PATH"] = os.pathsep.join(dict.fromkeys(d for d in lib_dirs if d))
+    return env
 
 
 @invoke.task
