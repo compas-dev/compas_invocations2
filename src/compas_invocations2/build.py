@@ -92,7 +92,7 @@ def release(ctx, release_type):
 @invoke.task
 def prepare_changelog(ctx):
     """Prepare changelog for next release."""
-    UNRELEASED_CHANGELOG_TEMPLATE = "## Unreleased\n\n### Added\n\n### Changed\n\n### Removed\n\n\n## "
+    UNRELEASED_CHANGELOG_TEMPLATE = "## Unreleased\n\n### Added\n\n### Changed\n\n### Removed\n\n## "
 
     with chdir(ctx.base_folder):
         # Preparing changelog for next release
