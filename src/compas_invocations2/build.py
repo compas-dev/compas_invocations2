@@ -98,6 +98,8 @@ def prepare_changelog(ctx):
         # Preparing changelog for next release
         with open("CHANGELOG.md", "r+") as changelog:
             content = changelog.read()
+            if "\n## Unreleased\n" in content:
+                raise RuntimeError("Changelog already contains an unreleased section")
             changelog.seek(0)
             changelog.write(content.replace("## ", UNRELEASED_CHANGELOG_TEMPLATE, 1))
 
