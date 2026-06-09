@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+* Removed extra line break from prepare changelog template.
+* Prevented adding several unreleased sections to changelog.
+
 ### Removed
 
 
