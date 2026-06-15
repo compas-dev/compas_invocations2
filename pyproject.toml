@@ -13,6 +13,9 @@ keywords = []
 authors = [
     { name = "Li Chen", email = "li.chen@arch.ethz.ch" },
     { name = "Gonzalo Casas", email = "casas@arch.ethz.ch" },
+    { name = "tom van mele", email = "tom.v.mele@gmail.com" },
+    { name = "José Miguel Moreno", email = "morenolopez@arch.ethz.ch" },
+    { name = "Chen Kasirer", email = "kasirer@arch.ethz.ch" },
 ]
 license = { file = "LICENSE" }
 readme = "README.md"
