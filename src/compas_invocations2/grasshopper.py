@@ -7,11 +7,14 @@ It is distributed under the MIT License, provided this attribution is retained.
 """
 
 import os
+import platform
 import re
 import shutil
+import subprocess
 import tempfile
 from pathlib import Path
 from typing import List
+from typing import Optional
 
 import invoke
 import requests
@@ -21,16 +24,55 @@ from compas_invocations2.console import chdir
 
 YAK_URL = r"https://files.mcneel.com/yak/tools/latest/yak.exe"
 
+# The `yak` CLI shipped inside the Rhino application bundle on macOS.
+RHINO_YAK_PATHS = [
+    "/Applications/Rhino 8.app/Contents/Resources/bin/yak",
+    "/Applications/Rhino 7.app/Contents/Resources/bin/yak",
+]
+
 
 def _download_yak_executable(target_dir: str):
     response = requests.get(YAK_URL)
     if response.status_code != 200:
         raise ValueError(f"Failed to download the yak.exe from url:{YAK_URL} with error : {response.status_code}")
 
-    target_path = os.path.join(target_dir, "yak.exe")
+    # absolute, because callers run yak from inside a different working directory
+    target_path = os.path.abspath(os.path.join(target_dir, "yak.exe"))
     with open(target_path, "wb") as f:
         f.write(response.content)
     return target_path
+
+
+def _find_native_yak() -> Optional[str]:
+    """Return the path to a natively runnable ``yak`` CLI, if one is installed."""
+    for path in RHINO_YAK_PATHS:
+        if os.path.isfile(path) and os.access(path, os.X_OK):
+            return path
+    return shutil.which("yak")
+
+
+def _get_yak_command(download_dir: str) -> List[str]:
+    """Return the argv prefix used to invoke yak, downloading ``yak.exe`` if needed.
+
+    The only yak binary McNeel publishes for download is a .NET Framework ``yak.exe``.
+    On Windows it runs as-is. Elsewhere it needs a runtime, so we prefer the native
+    ``yak`` CLI that ships inside the Rhino application bundle (macOS) or is otherwise
+    on PATH, and fall back to running the downloaded ``yak.exe`` under Mono.
+    """
+    if platform.system() == "Windows":
+        return [_download_yak_executable(download_dir)]
+
+    native_yak = _find_native_yak()
+    if native_yak:
+        return [native_yak]
+
+    mono = shutil.which("mono")
+    if not mono:
+        raise invoke.Exit(
+            "No yak executable available. Install Rhino (which bundles the `yak` CLI) "
+            "or install Mono (`brew install mono`) so that the downloaded yak.exe can be run."
+        )
+    return [mono, _download_yak_executable(download_dir)]
 
 
 def _set_version_in_manifest(manifest_path: str, version: str):
@@ -202,17 +244,15 @@ def yakerize(
     # yak executable shouldn't be in the target directory, otherwise it will be included in the package
     target_parent = os.sep.join(target_dir.split(os.sep)[:-1])
     try:
-        yak_exe_path = _download_yak_executable(target_parent)
+        yak_cmd = _get_yak_command(target_parent)
     except ValueError:
         raise invoke.Exit("Failed to download the yak executable")
-    else:
-        yak_exe_path = os.path.abspath(yak_exe_path)
 
     with chdir(target_dir):
         try:
             # not using `ctx.run()` here to get properly formatted output (unicode+colors)
-            os.system(f"{yak_exe_path} build --platform any")
-        except Exception as e:
+            subprocess.run(yak_cmd + ["build", "--platform", "any"], check=True)
+        except (OSError, subprocess.CalledProcessError) as e:
             raise invoke.Exit(f"Failed to build the yak package: {e}")
         if not any([f.endswith(".yak") for f in os.listdir(target_dir)]):
             raise invoke.Exit("No .yak file was created in the build directory.")
@@ -234,18 +274,24 @@ def publish_yak(ctx, yak_file: str, test_server: bool = False):
     if not yak_file.endswith(".yak"):
         raise invoke.Exit("Invalid file type. Must be a .yak file.")
 
+    yak_file = os.path.abspath(yak_file)
+
     with chdir(ctx.base_folder):
         with tempfile.TemporaryDirectory("actions.publish_yak") as action_dir:
             try:
-                _download_yak_executable(action_dir)
+                yak_cmd = _get_yak_command(action_dir)
             except ValueError:
                 raise invoke.Exit("Failed to download the yak executable")
 
-            yak_exe_path: str = os.path.join(action_dir, "yak.exe")
+            cmd = yak_cmd + ["push"]
             if test_server:
-                ctx.run(f"{yak_exe_path} push --source https://test.yak.rhino3d.com {yak_file}")
-            else:
-                ctx.run(f"{yak_exe_path} push {yak_file}")
+                cmd += ["--source", "https://test.yak.rhino3d.com"]
+            cmd.append(yak_file)
+
+            try:
+                subprocess.run(cmd, check=True)
+            except (OSError, subprocess.CalledProcessError) as e:
+                raise invoke.Exit(f"Failed to publish the yak package: {e}")
 
 
 def _is_header_line(line: str) -> bool:
