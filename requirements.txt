@@ -1,2 +1,3 @@
 tomlkit
 semver
+pythonnet
