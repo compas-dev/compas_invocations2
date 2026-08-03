@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+* Added support for macOS in `invoke yakerize`.
+* Added support for yakerize configuration through the context configuration dictionary.
+
 ### Changed
 
 ### Removed
