@@ -70,7 +70,8 @@ def _get_yak_command(download_dir: str) -> List[str]:
     mono = shutil.which("mono")
     if not mono:
         raise invoke.Exit(
-            "No yak executable available. Install Rhino (which bundles the `yak` CLI) or install Mono (`brew install mono`) so that the downloaded yak.exe can be run."
+            "No yak executable available. Install Rhino (which bundles the `yak` CLI) "
+            "or install Mono (`brew install mono`) so that the downloaded yak.exe can be run."
         )
     return [mono, _download_yak_executable(download_dir)]
 
@@ -193,7 +194,8 @@ def _resolve_yak_path(ctx, key: str, value: Optional[str], description: str) -> 
     path = value or _get_yak_setting(ctx, key)
     if not path:
         raise invoke.Exit(
-            f"Please provide the path to the {description}, either using `--{key.replace('_', '-')}` or by setting `yak.{key}` in the configuration of your tasks.py."
+            f"""Please provide the path to the {description}, either using `--{key.replace("_", "-")}` 
+            or by setting `yak.{key}` in the configuration of your tasks.py."""
         )
     if not os.path.exists(path):
         raise invoke.Exit(f"{description.capitalize()} not found at {path}. Please provide a valid path.")
@@ -295,7 +297,9 @@ def yakerize(
         os.rename(taget_file, new_filename)
 
 
-@invoke.task(help={"yak_file": "Path to the .yak file to publish.", "test_server": "True to publish to the test server."})
+@invoke.task(
+    help={"yak_file": "Path to the .yak file to publish.", "test_server": "True to publish to the test server."}
+)
 def publish_yak(ctx, yak_file: str, test_server: bool = False):
     """Publish a YAK package to the YAK server."""
 
