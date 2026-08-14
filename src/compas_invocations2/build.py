@@ -96,7 +96,7 @@ def prepare_changelog(ctx):
 
     with chdir(ctx.base_folder):
         # Preparing changelog for next release
-        with open("CHANGELOG.md", "r+") as changelog:
+        with open("CHANGELOG.md", "r+", newline="") as changelog:
             content = changelog.read()
             if "\n## Unreleased\n" in content:
                 raise RuntimeError("Changelog already contains an unreleased section")
