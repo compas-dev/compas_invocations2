@@ -22,7 +22,8 @@ import tomlkit
 
 from compas_invocations2.console import chdir
 
-YAK_URL = r"https://files.mcneel.com/yak/tools/latest/yak.exe"
+# https://developer.rhino3d.com/guides/yak/yak-cli-reference/#downloads
+YAK_VERSION = "0.19.1"
 
 # The `yak` CLI shipped inside the Rhino application bundle on macOS.
 RHINO_YAK_PATHS = [
@@ -32,15 +33,29 @@ RHINO_YAK_PATHS = [
 ]
 
 
+def _get_yak_url() -> str:
+    """Return the download URL of the yak CLI build matching the current platform."""
+    base_url = f"https://files.mcneel.com/yak/tools/{YAK_VERSION}"
+    arch = "arm64" if platform.machine().lower() in ("arm64", "aarch64") else "x64"
+    system = platform.system()
+    if system == "Windows":
+        return f"{base_url}/win-{arch}/yak.exe"
+    if system == "Darwin":
+        return f"{base_url}/osx-universal/yak"
+    return f"{base_url}/linux-{arch}/yak"
+
+
 def _download_yak_executable(target_dir: str):
-    response = requests.get(YAK_URL)
+    url = _get_yak_url()
+    response = requests.get(url)
     if response.status_code != 200:
-        raise ValueError(f"Failed to download the yak.exe from url:{YAK_URL} with error : {response.status_code}")
+        raise ValueError(f"Failed to download the yak executable from url:{url} with error : {response.status_code}")
 
     # absolute, because callers run yak from inside a different working directory
-    target_path = os.path.abspath(os.path.join(target_dir, "yak.exe"))
+    target_path = os.path.abspath(os.path.join(target_dir, url.rsplit("/", 1)[-1]))
     with open(target_path, "wb") as f:
         f.write(response.content)
+    os.chmod(target_path, 0o755)
     return target_path
 
 
@@ -53,27 +68,17 @@ def _find_native_yak() -> Optional[str]:
 
 
 def _get_yak_command(download_dir: str) -> List[str]:
-    """Return the argv prefix used to invoke yak, downloading ``yak.exe`` if needed.
+    """Return the argv prefix used to invoke yak, downloading the CLI if needed.
 
-    The only yak binary McNeel publishes for download is a .NET Framework ``yak.exe``.
-    On Windows it runs as-is. Elsewhere it needs a runtime, so we prefer the native
-    ``yak`` CLI that ships inside the Rhino application bundle (macOS) or is otherwise
-    on PATH, and fall back to running the downloaded ``yak.exe`` under Mono.
+    On Windows the CLI is always downloaded. Elsewhere we prefer the native ``yak`` CLI
+    that ships inside the Rhino application bundle (macOS) or is otherwise on PATH.
     """
-    if platform.system() == "Windows":
-        return [_download_yak_executable(download_dir)]
+    if platform.system() != "Windows":
+        native_yak = _find_native_yak()
+        if native_yak:
+            return [native_yak]
 
-    native_yak = _find_native_yak()
-    if native_yak:
-        return [native_yak]
-
-    mono = shutil.which("mono")
-    if not mono:
-        raise invoke.Exit(
-            "No yak executable available. Install Rhino (which bundles the `yak` CLI) "
-            "or install Mono (`brew install mono`) so that the downloaded yak.exe can be run."
-        )
-    return [mono, _download_yak_executable(download_dir)]
+    return [_download_yak_executable(download_dir)]
 
 
 def _set_version_in_manifest(manifest_path: str, version: str):
