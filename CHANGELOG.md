@@ -11,7 +11,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+* Changed `yakerize` and `publish_yak` to download a versioned, platform-specific `yak` CLI instead of the deprecated `latest/yak.exe`.
+
 ### Removed
+
+* Removed the Mono fallback for running `yak.exe` on non-Windows platforms.
 
 ## [1.3.0] 2026-08-14
 
